@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Lunar Landing Site Navigator — NASA Space Apps Challenge. Interactive 3D terrain explorer for South Pole landing site analysis." />
+    <title>Lunar Landing Site Navigator | NASA Space Apps</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header id="app-header">
+        <div id="header-left">
+          <div id="logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="14" stroke="#ff6a00" stroke-width="2"/>
+              <circle cx="16" cy="16" r="8" stroke="#ff6a00" stroke-width="1" opacity="0.5"/>
+              <circle cx="16" cy="16" r="2" fill="#ff6a00"/>
+              <line x1="2" y1="16" x2="30" y2="16" stroke="#ff6a00" stroke-width="1" opacity="0.4"/>
+              <line x1="16" y1="2" x2="16" y2="30" stroke="#ff6a00" stroke-width="1" opacity="0.4"/>
+            </svg>
+          </div>
+          <div id="title-block">
+            <h1 id="app-title">Lunar Landing Site Navigator</h1>
+            <span id="app-subtitle">NASA Space Apps Challenge &mdash; South Polar Analysis</span>
+          </div>
+        </div>
+        <div id="header-right">
+          <div class="status-pill" id="sys-status">
+            <span class="status-dot"></span>
+            <span id="status-text">LOADING DATA</span>
+          </div>
+          <div id="time-display">
+            <span class="label">SIM TIME</span>
+            <span id="sim-time-val" class="mono">2024-01-01 00:00</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main layout -->
+      <main id="main-layout">
+        <!-- Left Sidebar -->
+        <aside id="sidebar" role="complementary" aria-label="Site selection and controls">
+          <section id="sites-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">LANDING SITES</span>
+              <span class="panel-badge" id="site-count">3</span>
+            </div>
+            <div id="site-list"></div>
+          </section>
+
+          <section id="controls-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">RENDER CONTROLS</span>
+            </div>
+            <div class="control-group">
+              <label for="exaggeration-slider" class="control-label">
+                VERT. EXAGGERATION <span class="mono" id="exag-val">3.0×</span>
+              </label>
+              <input type="range" id="exaggeration-slider" min="0.5" max="10" step="0.1" value="3" />
+            </div>
+            <div class="control-group">
+              <label class="control-label">COLOR MODE</label>
+              <div class="toggle-group" id="color-mode-toggle" role="group" aria-label="Color mode">
+                <button class="toggle-btn active" data-mode="height" id="btn-height">HEIGHT</button>
+                <button class="toggle-btn" data-mode="slope" id="btn-slope">SLOPE</button>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">LAYER</label>
+              <div class="toggle-group" id="layer-toggle" role="group" aria-label="Layer toggle">
+                <button class="toggle-btn active" data-layer="terrain" id="btn-terrain">TERRAIN</button>
+                <button class="toggle-btn" data-layer="wireframe" id="btn-wireframe">WIRE</button>
+              </div>
+            </div>
+          </section>
+
+          <section id="time-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">TIME CONTROL</span>
+            </div>
+            <div class="control-group">
+              <label for="time-slider" class="control-label">
+                HOUR OF YEAR <span class="mono" id="hour-val">0 / 8759</span>
+              </label>
+              <input type="range" id="time-slider" min="0" max="8759" step="1" value="0" />
+            </div>
+            <div class="time-info-grid">
+              <div class="time-info-cell">
+                <span class="label">SUN AZ</span>
+                <span class="mono value" id="sun-az-val">—°</span>
+              </div>
+              <div class="time-info-cell">
+                <span class="label">SUN EL</span>
+                <span class="mono value" id="sun-el-val">—°</span>
+              </div>
+              <div class="time-info-cell">
+                <span class="label">EARTH AZ</span>
+                <span class="mono value" id="earth-az-val">—°</span>
+              </div>
+              <div class="time-info-cell">
+                <span class="label">EARTH EL</span>
+                <span class="mono value" id="earth-el-val">—°</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <!-- 3D Canvas -->
+        <div id="canvas-container" role="img" aria-label="3D lunar terrain visualization">
+          <canvas id="three-canvas"></canvas>
+          <div id="canvas-overlay">
+            <div id="selected-site-banner" class="hidden">
+              <span class="label">SELECTED</span>
+              <span id="selected-site-name" class="mono">—</span>
+            </div>
+            <div id="canvas-hint">CLICK MARKER TO SELECT SITE &nbsp;|&nbsp; DRAG TO ROTATE &nbsp;|&nbsp; SCROLL TO ZOOM</div>
+          </div>
+          <div id="loading-overlay">
+            <div id="loading-spinner"></div>
+            <div id="loading-text" class="mono">INITIALIZING TERRAIN DATA…</div>
+          </div>
+        </div>
+
+        <!-- Right Panel -->
+        <aside id="right-panel" role="complementary" aria-label="Site analysis">
+          <!-- Comparison Cards -->
+          <section id="comparison-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">SITE COMPARISON</span>
+            </div>
+            <div id="comparison-cards"></div>
+          </section>
+
+          <!-- Horizon Panel -->
+          <section id="horizon-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">360° HORIZON</span>
+              <div class="toggle-group" id="horizon-mode-toggle" role="group">
+                <button class="toggle-btn active" data-hmode="polar" id="btn-polar">POLAR</button>
+                <button class="toggle-btn" data-hmode="panorama" id="btn-panorama">PANO</button>
+              </div>
+            </div>
+            <div id="horizon-container">
+              <svg id="polar-plot" viewBox="0 0 300 300" role="img" aria-label="Polar horizon plot"></svg>
+              <canvas id="panorama-canvas" width="600" height="150" class="hidden" aria-label="Panorama strip horizon"></canvas>
+              <div id="horizon-legend">
+                <span class="legend-item"><span class="legend-dot sun-dot"></span>SUN PATH</span>
+                <span class="legend-item"><span class="legend-dot earth-dot"></span>EARTH PATH</span>
+                <span class="legend-item"><span class="legend-dot horizon-dot"></span>HORIZON</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Limits & Sources -->
+          <section id="limits-section" class="panel">
+            <div class="panel-header">
+              <span class="panel-title">LIMITS &amp; SOURCES</span>
+              <button class="icon-btn" id="limits-toggle-btn" aria-expanded="false" aria-controls="limits-body">▾</button>
+            </div>
+            <div id="limits-body" class="collapsed">
+              <div id="limits-content"></div>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
